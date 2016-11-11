@@ -1,0 +1,17 @@
+#env /bin/bash
+echo "==> export start ##"
+echo > pomo.txt
+progress="###"
+for ((i=0;i<1000;i++)); do                                                                             
+	curl -s -i https://api.pomotodo.com/1/pomos\?started_later_than\="1970-01-01T06:47:37.000Z"\&limit\=100\&offset\=$((i*100))        -H "Authorization: token YOUR_PERSONAL_TOKEN" >> pomo.txt
+    return_status=$(grep HTTP/1.1 pomo.txt | tail -1 | grep 200)
+    if [ -z "$return_status" ]; then echo "😔  ERROR:\t"$(grep HTTP/1.1 pomo.txt | tail -1)  && exit; fi
+	last=$(tail -1 pomo.txt)
+	if [  "$last" = "[]"  ] ; then break; fi
+    printf '\r'$progress"   $((i*100))"
+    progress=$progress"###"
+    sleep 1
+done
+count=$(grep uuid pomo.txt | uniq | wc -l | awk '{print $1}')
+echo "==> export $count record, done"
+echo "🍻 check it at $PWD/pomo.txt"
